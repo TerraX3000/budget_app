@@ -27,6 +27,8 @@ def upload_budget_file():
     header = ",".join(fields)
     if not is_file:
         st.file_uploader("Upload Budget File", key="budget_file", on_change=upload_file)
+    else:
+        st.session_state["upload_budget_file"] = True
 
 
 def run():
