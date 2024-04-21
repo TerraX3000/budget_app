@@ -96,10 +96,16 @@ def run():
             statement_files = get_statement_files(account=account)
             if statement_files:
                 st.write("Imported Files:")
+                imported_files = []
                 for file in statement_files:
                     filename = file["filename"].split("/")[-1]
-                    st.write(filename)
-            st.write(statement_files)
+                    imported_files.append(filename)
+                imported_files = sorted(imported_files)
+                st.dataframe(
+                    imported_files,
+                    hide_index=None,
+                    column_config={"value": st.column_config.Column("Filename")},
+                )
             new_key = f"file-uploader-{get_new_key()}"
             file = st.file_uploader(
                 "Import Statement",
