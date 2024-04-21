@@ -39,10 +39,10 @@ def run():
             for file in files:
                 filename_only = file["filename"].split("/")[-1]
                 filenames[file["filename"]] = filename_only
-
+            options = sorted(list(filenames.keys()))
             selected_file = st.selectbox(
                 "File",
-                options=filenames.keys(),
+                options=options,
                 format_func=lambda x: filenames.get(x),
                 index=None,
             )
