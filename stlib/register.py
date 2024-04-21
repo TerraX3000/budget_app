@@ -18,8 +18,8 @@ from icecream import ic
 def run():
     st.query_params.page = "register"
     navbar.run()
-    col_1, col_2, spacer = st.columns([2, 4, 1])
-    filename = None
+    col_1, col_2, spacer = st.columns([2, 2, 1])
+    selected_file = None
 
     try:
         accounts = get_data_list("accounts")
@@ -35,11 +35,20 @@ def run():
     with col_2:
         if account:
             files = get_statement_files("register", account=account)
-            filenames = [file["filename"] for file in files]
-            filename = st.selectbox("File", options=filenames, index=None)
+            filenames = {}
+            for file in files:
+                filename_only = file["filename"].split("/")[-1]
+                filenames[file["filename"]] = filename_only
 
-    if filename:
-        df = get_register_dataframe(filename=filename)
+            selected_file = st.selectbox(
+                "File",
+                options=filenames.keys(),
+                format_func=lambda x: filenames.get(x),
+                index=None,
+            )
+
+    if selected_file:
+        df = get_register_dataframe(filename=selected_file)
         df = df.sort_values(["Date", "Account"], ascending=[True, True])
         with st.container():
             categories = get_budget_categories()
@@ -52,7 +61,7 @@ def run():
                 key=key,
                 height=38 * len(df),
                 on_change=add_update_delete_register,
-                kwargs={"df": df, "data_key": key, "filename": filename},
+                kwargs={"df": df, "data_key": key, "filename": selected_file},
                 hide_index=True,
                 num_rows="fixed",
                 column_order=column_order,
