@@ -1,0 +1,14 @@
+modules:
+  - index
+  - register
+  - expenses
+  - budget
+  - monthly report
+  - import
+  - accounts
+data_files:
+  budget: budget_categories.csv
+  imported_files: imported_files.csv
+  accounts: accounts.csv
+  statements: statements
+  register: register
