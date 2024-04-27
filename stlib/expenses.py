@@ -177,5 +177,3 @@ def run():
                 ),
             },
         )
-
-        st.json(st.session_state)
