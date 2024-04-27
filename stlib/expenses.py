@@ -5,6 +5,7 @@ from sections import navbar
 from functions.utility import get_register_dataframe, get_app_config, get_data_list
 import datetime
 from icecream import ic
+from typing import List
 
 
 def expenditures_metric(df):
@@ -47,40 +48,79 @@ def category_metrics(df):
             st.metric(category_sum["category"], f"${abs(category_sum['sum']):,.0f}")
 
 
+def set_state(key, options: List):
+    index = options.index(st.session_state[key])
+    st.session_state["expenses"][key] = index
+    if key == "category":
+        st.session_state["expenses"]["sub_category"] = 0
+
+
 def run():
     st.query_params.page = "expenses"
+    if "expenses" not in st.session_state:
+        st.session_state["expenses"] = {}
+        st.session_state["expenses"]["accounts"] = None
+        today = datetime.date.today()
+        jan_1st = datetime.date(today.year, 1, 1)
+        st.session_state["expenses"]["start_date"] = jan_1st
+        st.session_state["expenses"]["end_date"] = today
+        st.session_state["expenses"]["category"] = 0
+        st.session_state["expenses"]["sub_category"] = 0
+        st.session_state["expenses"]["search_text"] = None
     navbar.run()
     df = get_register_dataframe()
     df = df.sort_values(["Date", "Account"], ascending=[True, True])
     budget = get_data_list("budget")
     category_1_list = sorted(set([item["Category 1"] for item in budget]))
+    category_1_list.insert(0, "")
 
     with st.container():
         st.write("")
         col_1, col_2, col_3, col_4 = st.columns([1, 1, 1, 1])
         col_5, col_6 = st.columns([4, 2])
         with col_1:
-            today = datetime.date.today()
-            jan_1st = datetime.date(today.year, 1, 1)
+
             start_date = st.date_input(
                 "Start Date",
-                value=jan_1st,
+                value=st.session_state["expenses"]["start_date"],
                 format="MM/DD/YYYY",
             )
+            st.session_state["expenses"]["start_date"] = start_date
         with col_2:
             end_date = st.date_input(
                 "End Date",
+                value=st.session_state["expenses"]["end_date"],
                 format="MM/DD/YYYY",
             )
+            st.session_state["expenses"]["end_date"] = end_date
         df = df.query(f"Date >= '{start_date}' and Date < '{end_date}'")
         with col_3:
             options = category_1_list
-            category = st.selectbox("Category", options=options, index=None)
+            category = st.selectbox(
+                "Category",
+                key="category",
+                options=options,
+                index=st.session_state["expenses"]["category"],
+                on_change=set_state,
+                kwargs={"key": "category", "options": options},
+            )
             if category:
                 df = df[df["Category"].str.startswith(category, na=False)]
         with col_4:
-            options = df["Category"].drop_duplicates().sort_values()
-            sub_category = st.selectbox("Sub-Category", options=options, index=None)
+            options = list(df["Category"].drop_duplicates().sort_values())
+            options.insert(0, "")
+            if st.session_state["expenses"]["sub_category"] < len(options):
+                index = st.session_state["expenses"]["sub_category"]
+            else:
+                index = 0
+            sub_category = st.selectbox(
+                "Sub-Category",
+                options=options,
+                key="sub_category",
+                index=index,
+                on_change=set_state,
+                kwargs={"key": "sub_category", "options": options},
+            )
             if sub_category:
                 df = df[df["Category"] == sub_category]
         with col_5:
@@ -92,11 +132,19 @@ def run():
                 st.warning("Add accounts before importing files.")
             account_dict = {account["Account"]: account for account in accounts}
             options = account_dict.keys()
-            accounts = st.multiselect("Account", options=options)
+            accounts = st.multiselect(
+                "Account",
+                options=options,
+                default=st.session_state["expenses"]["accounts"],
+            )
+            st.session_state["expenses"]["accounts"] = accounts
             if accounts:
                 df = df[df["Account"].isin(accounts)]
         with col_6:
-            search_text = st.text_input("Search Description")
+            search_text = st.text_input(
+                "Search Description", value=st.session_state["expenses"]["search_text"]
+            )
+            st.session_state["expenses"]["search_text"] = search_text
             if search_text:
                 df = df[df["Description"].str.contains(search_text, case=False)]
         column_order = list(df.columns)
@@ -129,3 +177,5 @@ def run():
                 ),
             },
         )
+
+        st.json(st.session_state)
