@@ -50,23 +50,23 @@ def category_metrics(df):
 
 def set_state(key, options: List):
     index = options.index(st.session_state[key])
-    st.session_state["expenses"][key] = index
+    st.session_state["page:expenses"][key] = index
     if key == "category":
-        st.session_state["expenses"]["sub_category"] = 0
+        st.session_state["page:expenses"]["sub_category"] = 0
 
 
 def run():
     st.query_params.page = "expenses"
-    if "expenses" not in st.session_state:
-        st.session_state["expenses"] = {}
-        st.session_state["expenses"]["accounts"] = None
+    if "page:expenses" not in st.session_state:
+        st.session_state["page:expenses"] = {}
+        st.session_state["page:expenses"]["accounts"] = None
         today = datetime.date.today()
         jan_1st = datetime.date(today.year, 1, 1)
-        st.session_state["expenses"]["start_date"] = jan_1st
-        st.session_state["expenses"]["end_date"] = today
-        st.session_state["expenses"]["category"] = 0
-        st.session_state["expenses"]["sub_category"] = 0
-        st.session_state["expenses"]["search_text"] = None
+        st.session_state["page:expenses"]["start_date"] = jan_1st
+        st.session_state["page:expenses"]["end_date"] = today
+        st.session_state["page:expenses"]["category"] = 0
+        st.session_state["page:expenses"]["sub_category"] = 0
+        st.session_state["page:expenses"]["search_text"] = None
     navbar.run()
     df = get_register_dataframe()
     df = df.sort_values(["Date", "Account"], ascending=[True, True])
@@ -82,17 +82,17 @@ def run():
 
             start_date = st.date_input(
                 "Start Date",
-                value=st.session_state["expenses"]["start_date"],
+                value=st.session_state["page:expenses"]["start_date"],
                 format="MM/DD/YYYY",
             )
-            st.session_state["expenses"]["start_date"] = start_date
+            st.session_state["page:expenses"]["start_date"] = start_date
         with col_2:
             end_date = st.date_input(
                 "End Date",
-                value=st.session_state["expenses"]["end_date"],
+                value=st.session_state["page:expenses"]["end_date"],
                 format="MM/DD/YYYY",
             )
-            st.session_state["expenses"]["end_date"] = end_date
+            st.session_state["page:expenses"]["end_date"] = end_date
         df = df.query(f"Date >= '{start_date}' and Date < '{end_date}'")
         with col_3:
             options = category_1_list
@@ -100,7 +100,7 @@ def run():
                 "Category",
                 key="category",
                 options=options,
-                index=st.session_state["expenses"]["category"],
+                index=st.session_state["page:expenses"]["category"],
                 on_change=set_state,
                 kwargs={"key": "category", "options": options},
             )
@@ -109,8 +109,8 @@ def run():
         with col_4:
             options = list(df["Category"].drop_duplicates().sort_values())
             options.insert(0, "")
-            if st.session_state["expenses"]["sub_category"] < len(options):
-                index = st.session_state["expenses"]["sub_category"]
+            if st.session_state["page:expenses"]["sub_category"] < len(options):
+                index = st.session_state["page:expenses"]["sub_category"]
             else:
                 index = 0
             sub_category = st.selectbox(
@@ -135,16 +135,17 @@ def run():
             accounts = st.multiselect(
                 "Account",
                 options=options,
-                default=st.session_state["expenses"]["accounts"],
+                default=st.session_state["page:expenses"]["accounts"],
             )
-            st.session_state["expenses"]["accounts"] = accounts
+            st.session_state["page:expenses"]["accounts"] = accounts
             if accounts:
                 df = df[df["Account"].isin(accounts)]
         with col_6:
             search_text = st.text_input(
-                "Search Description", value=st.session_state["expenses"]["search_text"]
+                "Search Description",
+                value=st.session_state["page:expenses"]["search_text"],
             )
-            st.session_state["expenses"]["search_text"] = search_text
+            st.session_state["page:expenses"]["search_text"] = search_text
             if search_text:
                 df = df[df["Description"].str.contains(search_text, case=False)]
         column_order = list(df.columns)

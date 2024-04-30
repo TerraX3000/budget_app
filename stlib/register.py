@@ -18,18 +18,18 @@ from typing import List
 
 def set_state(key, options: List):
     index = options.index(st.session_state[key])
-    st.session_state["register"][key] = index
+    st.session_state["page:register"][key] = index
     if key == "account":
-        st.session_state["register"]["file"] = 0
+        st.session_state["page:register"]["file"] = 0
 
 
 def run():
     st.query_params.page = "register"
     navbar.run()
-    if "register" not in st.session_state:
-        st.session_state["register"] = {}
-        st.session_state["register"]["account"] = 0
-        st.session_state["register"]["file"] = 0
+    if "page:register" not in st.session_state:
+        st.session_state["page:register"] = {}
+        st.session_state["page:register"]["account"] = 0
+        st.session_state["page:register"]["file"] = 0
     col_1, col_2, spacer = st.columns([2, 2, 1])
     selected_file = None
 
@@ -47,11 +47,12 @@ def run():
         account = st.selectbox(
             "Account",
             options=options,
-            index=st.session_state["register"]["account"],
+            index=st.session_state["page:register"]["account"],
             key="account",
             on_change=set_state,
             kwargs={"key": "account", "options": options},
         )
+        st.session_state["page:register"]["account"] = options.index(account)
     with col_2:
         if account:
             files = get_statement_files("register", account=account)
@@ -65,7 +66,7 @@ def run():
                 "File",
                 options=options,
                 format_func=lambda x: filenames.get(x, ""),
-                index=st.session_state["register"]["file"],
+                index=st.session_state["page:register"]["file"],
                 key="file",
                 on_change=set_state,
                 kwargs={"key": "file", "options": options},
