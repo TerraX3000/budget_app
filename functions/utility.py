@@ -121,8 +121,13 @@ def add_update_delete_register(df: pd.DataFrame, data_key, filename):
     return True
 
 
-def get_budget_categories():
+def get_budget_categories(type="Combined"):
     df = get_dataframe("budget")
-    df["categories"] = df["Category 1"] + " | " + df["Category 2"]
-    categories = df["categories"].tolist()
+    if type == "Combined":
+        df["categories"] = df["Category 1"] + " | " + df["Category 2"]
+        categories = df["categories"].tolist()
+    elif type == "Category 1":
+        categories = df["Category 1"].tolist()
+    elif type == "Category 2":
+        categories = df["Category 2"].tolist()
     return categories
