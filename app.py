@@ -2,6 +2,7 @@ import importlib
 import streamlit as st
 import uuid
 from functions.utility import get_app_config
+from sections.login import check_password
 
 st.set_page_config(
     page_title="Budget App",
@@ -11,6 +12,8 @@ st.set_page_config(
 if "sid" not in st.session_state:
     st.session_state.sid = str(uuid.uuid4())
 
+if not check_password():
+    st.stop()
 
 module_names = get_app_config(config_name="modules")
 try:
