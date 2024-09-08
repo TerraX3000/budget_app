@@ -22,6 +22,12 @@ def income_metric(df):
     st.metric("Income", f"${income:,.0f}")
 
 
+def uncategorized_metric(df):
+    uncategorized_df = df[df["Category"].isna()]
+    uncategorized_total = uncategorized_df["Amount"].abs().sum()
+    st.metric("Uncategorized Amount", f"${uncategorized_total:,.0f}")
+
+
 def category_metrics(df):
     with st.expander("Expenditure Categories"):
         row_1 = st.columns([1, 1, 1, 1, 1, 1, 1])
@@ -151,13 +157,15 @@ def run():
         column_order = list(df.columns)
 
         st.write("")
-        col_1, col_2, col_3, spacer = st.columns([2, 3, 2, 6])
+        col_1, col_2, col_3, col_4, spacer = st.columns([2, 3, 2, 2, 6])
         with col_1:
             st.metric("Transactions", len(df))
         with col_2:
             expenditures_metric(df)
         with col_3:
             income_metric(df)
+        with col_4:
+            uncategorized_metric(df)
         category_metrics(df)
 
         st.dataframe(
