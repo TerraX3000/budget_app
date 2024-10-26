@@ -69,6 +69,21 @@ def display_bar_chart_of_budget_by_category(budget):
     df = df.melt(id_vars="Category 1", var_name="Month", value_name="Amount")
     # Sort the data by category and month
     df = df.sort_values(["Category 1", "Month"])
+    month_order = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ]
+    df["Month"] = pd.Categorical(df["Month"], categories=month_order, ordered=True)
     st.bar_chart(df, x="Month", y="Amount", color="Category 1")
 
 
