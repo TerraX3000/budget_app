@@ -64,11 +64,18 @@ def on_year_change():
 def display_bar_chart_of_budget_by_category(budget):
     """Displays bar chart of budget by month for each category"""
     category_totals = summarize_budget_by_category(budget)
-    # Reshape the data from wide format to long format
     df = pd.DataFrame(category_totals)
     df = df.melt(id_vars="Category 1", var_name="Month", value_name="Amount")
-    # Sort the data by category and month
+    category_totals_sorted = (
+        df.groupby("Category 1")["Amount"]
+        .sum()
+        .sort_values(ascending=False)
+        .index.tolist()
+    )
     df = df.sort_values(["Category 1", "Month"])
+    df["Category 1"] = pd.Categorical(
+        df["Category 1"], categories=category_totals_sorted, ordered=True
+    )
     month_order = [
         "Jan",
         "Feb",
