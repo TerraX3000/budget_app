@@ -101,17 +101,23 @@ def display_bar_chart_of_budget_by_category(budget):
     ]
     df["Month"] = pd.Categorical(df["Month"], categories=month_order, ordered=True)
 
-    colors = rainbow(len(category_totals_sorted))
+    # Sort the categories by alphabetical order
+    category_totals_sorted_alphabetical = sorted(category_totals_sorted)
+
+    # Assign rainbow colors to the categories sorted in alphabetical order
+    colors = rainbow(len(category_totals_sorted_alphabetical))
+
     chart = (
         alt.Chart(df)
         .mark_bar()
         .encode(
             x=alt.X("Month", sort=month_order),
             y="Amount",
-            # color="Category 1",
             color=alt.Color(
                 "Category 1:N",
-                scale=alt.Scale(domain=category_totals_sorted, range=colors),
+                scale=alt.Scale(
+                    domain=category_totals_sorted_alphabetical, range=colors
+                ),
             ),
             tooltip=["Month", "Amount", "Category 1"],
         )
