@@ -61,7 +61,7 @@ def on_year_change():
     set_state()
 
 
-def display_bar_chart_of_budget_by_category(budget):
+def old_display_bar_chart_of_budget_by_category(budget):
     """Displays bar chart of budget by month for each category"""
     category_totals = summarize_budget_by_category(budget)
     df = pd.DataFrame(category_totals)
@@ -92,6 +92,66 @@ def display_bar_chart_of_budget_by_category(budget):
     ]
     df["Month"] = pd.Categorical(df["Month"], categories=month_order, ordered=True)
     st.bar_chart(df, x="Month", y="Amount", color="Category 1")
+
+
+import altair as alt
+import colorsys
+
+
+def rainbow(n):
+    return [
+        "#{:02x}{:02x}{:02x}".format(int(r * 255), int(g * 255), int(b * 255))
+        for r, g, b in [colorsys.hsv_to_rgb(h, 1, 1) for h in [i / n for i in range(n)]]
+    ]
+
+
+def display_bar_chart_of_budget_by_category(budget):
+    """Displays bar chart of budget by month for each category"""
+    category_totals = summarize_budget_by_category(budget)
+    df = pd.DataFrame(category_totals)
+    df = df.melt(id_vars="Category 1", var_name="Month", value_name="Amount")
+    category_totals_sorted = (
+        df.groupby("Category 1")["Amount"]
+        .sum()
+        .sort_values(ascending=False)
+        .index.tolist()
+    )
+    df = df.sort_values(["Category 1", "Month"])
+    df["Category 1"] = pd.Categorical(
+        df["Category 1"], categories=category_totals_sorted, ordered=True
+    )
+    month_order = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ]
+    df["Month"] = pd.Categorical(df["Month"], categories=month_order, ordered=True)
+
+    colors = rainbow(len(category_totals_sorted))
+    chart = (
+        alt.Chart(df)
+        .mark_bar()
+        .encode(
+            x=alt.X("Month", sort=month_order),
+            y="Amount",
+            # color="Category 1",
+            color=alt.Color(
+                "Category 1:N",
+                scale=alt.Scale(domain=category_totals_sorted, range=colors),
+            ),
+            tooltip=["Month", "Amount", "Category 1"],
+        )
+    )
+    st.altair_chart(chart, use_container_width=True)
 
 
 def run():
