@@ -12,3 +12,4 @@ data_files:
   accounts: accounts.csv
   statements: statements
   register: register
+  annual_budgets: annual_budgets

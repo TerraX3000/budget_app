@@ -1,0 +1,9 @@
+default: 
+  js_scripts: []
+  stylesheets:
+    - https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css
+    - https://fonts.googleapis.com/icon?family=Material+Icons
+    - https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap
+    - https://cdn.astec.support/static/css/ai-tables-10.css
+    - https://cdn.astec.support/static/css/ai.css
+  class_name: row-border hover nowrap

@@ -54,6 +54,19 @@ def category_metrics(df):
             st.metric(category_sum["category"], f"${abs(category_sum['sum']):,.0f}")
 
 
+def get_category_options():
+    budget = get_data_list("budget")
+    category_options = sorted(set([item["Category 1"] for item in budget]))
+    category_options.insert(0, "")
+    return category_options
+
+
+def get_subcategory_options(df: pd.DataFrame):
+    sub_category_options = list(df["Category"].drop_duplicates().sort_values())
+    sub_category_options.insert(0, "")
+    return sub_category_options
+
+
 def set_state(key, options: List):
     index = options.index(st.session_state[key])
     st.session_state["page:expenses"][key] = index
@@ -76,9 +89,6 @@ def run():
     navbar.run()
     df = get_register_dataframe()
     df = df.sort_values(["Date", "Account"], ascending=[True, True])
-    budget = get_data_list("budget")
-    category_1_list = sorted(set([item["Category 1"] for item in budget]))
-    category_1_list.insert(0, "")
 
     with st.container():
         st.write("")
@@ -101,7 +111,8 @@ def run():
             st.session_state["page:expenses"]["end_date"] = end_date
         df = df.query(f"Date >= '{start_date}' and Date < '{end_date}'")
         with col_3:
-            options = category_1_list
+            category_options = get_category_options()
+            options = category_options
             category = st.selectbox(
                 "Category",
                 key="category",
@@ -113,19 +124,19 @@ def run():
             if category:
                 df = df[df["Category"].str.startswith(category, na=False)]
         with col_4:
-            options = list(df["Category"].drop_duplicates().sort_values())
-            options.insert(0, "")
+
+            sub_category_options = get_subcategory_options(df)
             if st.session_state["page:expenses"]["sub_category"] < len(options):
                 index = st.session_state["page:expenses"]["sub_category"]
             else:
                 index = 0
             sub_category = st.selectbox(
                 "Sub-Category",
-                options=options,
+                options=sub_category_options,
                 key="sub_category",
                 index=index,
                 on_change=set_state,
-                kwargs={"key": "sub_category", "options": options},
+                kwargs={"key": "sub_category", "options": sub_category_options},
             )
             if sub_category:
                 df = df[df["Category"] == sub_category]
