@@ -6,6 +6,7 @@ modules:
   - monthly report
   - import
   - accounts
+  - analysis
 data_files:
   budget: budget_categories.csv
   imported_files: imported_files.csv

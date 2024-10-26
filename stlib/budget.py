@@ -199,17 +199,35 @@ def set_budget_in_session():
     st.session_state["budget"] = budget
 
 
+def set_state():
+    year = st.session_state["year"]
+    st.session_state["page:budget"]["year"] = year
+
+
+def on_year_change():
+    set_budget_in_session()
+    set_state()
+
+
 def run():
     st.query_params.page = "budget"
     navbar.run()
+    if "page:budget" not in st.session_state:
+        st.session_state["page:budget"] = {}
+        st.session_state["page:budget"]["year"] = None
     years = ["2024", "2025"]
     col_1, col_2, col_3 = st.columns([2, 2, 4])
+    if st.session_state["page:budget"]["year"]:
+        index = years.index(st.session_state["page:budget"]["year"])
+    else:
+        index = None
+    print(index)
     year = col_1.selectbox(
         "Select year",
         options=years,
-        index=None,
+        index=index,
         key="year",
-        on_change=set_budget_in_session,
+        on_change=on_year_change,
     )
     if year:
         show_datatable()
