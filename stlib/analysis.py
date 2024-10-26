@@ -71,17 +71,19 @@ def rainbow(n):
 
 
 def display_bar_chart_of_budget_by_category(budget):
-    """Displays bar chart of budget by month for each category"""
+    """Displays bar chart of budget by month with categories sorted by cumulative total amount."""
     category_totals = summarize_budget_by_category(budget)
     df = pd.DataFrame(category_totals)
     df = df.melt(id_vars="Category 1", var_name="Month", value_name="Amount")
+
+    # Calculate cumulative total for each category across all months and sort
     category_totals_sorted = (
         df.groupby("Category 1")["Amount"]
         .sum()
-        .sort_values(ascending=False)
+        .sort_values(ascending=True)  # Sort in ascending order by cumulative amount
         .index.tolist()
     )
-    df = df.sort_values(["Category 1", "Month"])
+    # Ensure the DataFrame respects the sorted order by cumulative amount
     df["Category 1"] = pd.Categorical(
         df["Category 1"], categories=category_totals_sorted, ordered=True
     )
@@ -101,11 +103,9 @@ def display_bar_chart_of_budget_by_category(budget):
     ]
     df["Month"] = pd.Categorical(df["Month"], categories=month_order, ordered=True)
 
-    # Sort the categories by alphabetical order
-    category_totals_sorted_alphabetical = sorted(category_totals_sorted)
-
-    # Assign rainbow colors to the categories sorted in alphabetical order
-    colors = rainbow(len(category_totals_sorted_alphabetical))
+    # Assign rainbow colors to categories in alphabetical order for color consistency
+    category_totals_alphabetical = sorted(df["Category 1"].unique())
+    colors = rainbow(len(category_totals_alphabetical))
 
     chart = (
         alt.Chart(df)
@@ -116,10 +116,43 @@ def display_bar_chart_of_budget_by_category(budget):
             color=alt.Color(
                 "Category 1:N",
                 scale=alt.Scale(
-                    domain=category_totals_sorted_alphabetical, range=colors
+                    domain=category_totals_alphabetical,
+                    range=colors,  # Assign colors by alphabetical order
                 ),
             ),
             tooltip=["Month", "Amount", "Category 1"],
+        )
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+
+def display_bar_chart_of_annual_total_by_category(budget):
+    category_totals = summarize_budget_by_category(budget)
+    df = pd.DataFrame(category_totals)
+    df = df.melt(id_vars="Category 1", var_name="Month", value_name="Amount")
+
+    # Calculate the total amount spent by each category for the entire year
+    df_annual_total = df.groupby("Category 1")["Amount"].sum().reset_index()
+
+    # Sort the categories by alphabetical order
+    category_totals_sorted_alphabetical = sorted(df_annual_total["Category 1"].unique())
+
+    # Assign rainbow colors to the categories sorted in alphabetical order
+    colors = rainbow(len(category_totals_sorted_alphabetical))
+
+    chart = (
+        alt.Chart(df_annual_total)
+        .mark_bar()
+        .encode(
+            x=alt.X("Category 1:N", sort=category_totals_sorted_alphabetical),
+            y="Amount",
+            color=alt.Color(
+                "Category 1:N",
+                scale=alt.Scale(
+                    domain=category_totals_sorted_alphabetical, range=colors
+                ),
+            ),
+            tooltip=["Category 1", "Amount"],
         )
     )
     st.altair_chart(chart, use_container_width=True)
@@ -148,3 +181,4 @@ def run():
     if year:
         budget = st.session_state["budget"]
         display_bar_chart_of_budget_by_category(budget)
+        display_bar_chart_of_annual_total_by_category(budget)
